@@ -1,32 +1,31 @@
-# React + TypeScript + Vite
+# GAP
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aprovecha tus huecos de tiempo. GAP te recomienda qué hacer según los minutos que tienes y te deja **avanzar en tareas largas sin terminarlas en una sola sesión**.
 
-Currently, two official plugins are available:
+## Funcionalidades
+- **Tareas rápidas, largas y por hitos.**
+- **Progreso real**: manual o calculado por hitos completados. Nunca se deduce solo del tiempo invertido.
+- **Smart Gap Matching**: con X minutos libres, separa lo que puedes *completar*, lo que puedes *avanzar* y lo que *no es adecuado* ahora.
+- **Sesiones de trabajo** con objetivo, temporizador opcional, pausa y tiempo acumulado entre sesiones.
+- **Estadísticas** que distinguen tiempo invertido, progreso, tareas terminadas y en progreso.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Empezar
+```bash
+npm install
+npm run dev      # desarrollo
+npm test         # tests (Vitest)
+npm run build    # producción
 ```
+Sin configuración, GAP funciona en modo local (datos en el navegador). Para usar cuentas y sincronización:
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+1. Crea un proyecto en Supabase y aplica en orden `supabase/migrations/0001_gap_base.sql` y `0002_smart_progress.sql`.
+2. Copia `.env.example` a `.env` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
+
+## Estructura
+- `src/lib/` lógica pura: `progress`, `matching`, `sessions`, `stats`
+- `src/data/` repositorios local y Supabase
+- `src/components/` interfaz
+- `supabase/migrations/` migraciones aditivas con RLS
+- `supabase/rollback/` reversión **destructiva**, solo manual
+
+Detalles, verificación y limitaciones conocidas en [INFORME.md](INFORME.md).

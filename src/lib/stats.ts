@@ -41,3 +41,12 @@ export function formatMinutes(min: number): string {
   const m = min % 60
   return m ? `${h} h ${m} min` : `${h} h`
 }
+
+export function formatClock(ms: number) {
+  const s = Math.floor(ms / 1000)
+  const h = Math.floor(s / 3600)
+  const m = Math.floor((s % 3600) / 60)
+  const sec = s % 60
+  const p = (n: number) => String(n).padStart(2, '0')
+  return h ? `${h}:${p(m)}:${p(sec)}` : `${p(m)}:${p(sec)}`
+}

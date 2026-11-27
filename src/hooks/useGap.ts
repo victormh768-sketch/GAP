@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { Repository } from '../data/repository'
+import { friendlyError } from '../lib/errors'
 import { newTask } from '../lib/progress'
 import type { FinishResult } from '../lib/sessions'
 import type { Task, TaskType, WorkSession } from '../types'
@@ -23,9 +24,10 @@ export function useGap(repo: Repository) {
       const snap = await repo.load()
       setTasks(snap.tasks)
       setSessions(snap.sessions)
-      setError(null)
+      return true
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudieron cargar los datos')
+      setError(friendlyError(e, 'load'))
+      return false
     } finally {
       setLoading(false)
     }
@@ -37,14 +39,22 @@ export function useGap(repo: Repository) {
     void reload()
   }, [reload])
 
+  /**
+   * Ejecuta un guardado. Devuelve null si fue bien, o el mensaje de error.
+   * Si falla, se recarga el estado real y el mensaje se muestra DESPUÉS de recargar
+   * (si no, la recarga lo borraba y el usuario no veía que no se guardó).
+   */
   const guard = useCallback(
-    async (fn: () => Promise<void>) => {
+    async (fn: () => Promise<void>): Promise<string | null> => {
       try {
         await fn()
         setError(null)
+        return null
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Error al guardar')
-        await reload() // vuelve al estado real si falla el guardado
+        const message = friendlyError(e, 'save')
+        await reload()
+        setError(message)
+        return message
       }
     },
     [reload],
@@ -77,10 +87,10 @@ export function useGap(repo: Repository) {
   )
 
   const finish = useCallback(
-    async ({ task, session }: FinishResult) => {
+    async ({ task, session }: FinishResult): Promise<string | null> => {
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)))
       setSessions((prev) => [session, ...prev])
-      await guard(async () => {
+      return guard(async () => {
         const saved = await repo.recordSession(task, session)
         setTasks((prev) => prev.map((t) => (t.id === saved.id ? saved : t)))
       })
@@ -88,5 +98,7 @@ export function useGap(repo: Repository) {
     [guard, repo],
   )
 
-  return { tasks, sessions, loading, error, addTask, updateTask, removeTask, finish }
+  const clearError = useCallback(() => setError(null), [])
+
+  return { tasks, sessions, loading, error, clearError, addTask, updateTask, removeTask, finish }
 }

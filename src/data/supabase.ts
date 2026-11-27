@@ -71,6 +71,15 @@ export class SupabaseRepository implements Repository {
     }
   }
 
+  /** Borra los hitos que ya no están en la tarea (p. ej. el usuario quitó uno). */
+  private async deleteRemovedMilestones(task: Task) {
+    let q = this.db.from('milestones').delete().eq('task_id', task.id)
+    if (task.milestones.length > 0) {
+      q = q.not('id', 'in', `(${task.milestones.map((m) => m.id).join(',')})`)
+    }
+    fail((await q).error)
+  }
+
   private async upsertMilestones(task: Task) {
     if (task.milestones.length === 0) return
     const { error } = await this.db.from('milestones').upsert(
@@ -100,6 +109,7 @@ export class SupabaseRepository implements Repository {
     })
     fail(error)
     await this.upsertMilestones(task)
+    await this.deleteRemovedMilestones(task)
   }
 
   async deleteTask(id: string) {

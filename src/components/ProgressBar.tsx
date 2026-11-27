@@ -7,12 +7,9 @@ export function ProgressBar({ value, label }: { value: number; label?: string })
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={v}
-      className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]"
+      className="h-1.5 w-full overflow-hidden rounded-full bg-white/10"
     >
-      <div
-        className="h-full rounded-full bg-gradient-to-r from-accent to-emerald-300 transition-[width] duration-500 ease-out"
-        style={{ width: `${v}%` }}
-      />
+      <div className="h-full rounded-full bg-accent transition-[width] duration-500 ease-out" style={{ width: `${v}%` }} />
     </div>
   )
 }

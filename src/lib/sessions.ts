@@ -1,5 +1,5 @@
 import type { Task, WorkSession } from '../types'
-import { clampPct, effectivePct, nextMilestone, setManualProgress, toggleMilestone } from './progress'
+import { clampPct, effectivePct, markDone, nextMilestone, setManualProgress, toggleMilestone } from './progress'
 
 export const MAX_SESSION_MINUTES = 1440
 
@@ -12,6 +12,29 @@ export interface ActiveSession {
   accumulatedMs: number
   /** Instante (ms epoch) del último reinicio; null si está en pausa. */
   resumedAt: number | null
+  /** Minutos que GAP recomendó dedicar (opcional; sesiones antiguas no lo tienen). */
+  targetMinutes?: number
+  /** Para qué se empezó: terminar la tarea o solo avanzar. */
+  intent?: 'complete' | 'advance'
+}
+
+/** Valida una sesión activa leída de almacenamiento. Devuelve null si está dañada. */
+export function parseActiveSession(raw: unknown): ActiveSession | null {
+  if (!raw || typeof raw !== 'object') return null
+  const s = raw as Record<string, unknown>
+  if (typeof s.taskId !== 'string' || typeof s.goal !== 'string' || typeof s.startedAt !== 'string') return null
+  if (typeof s.timerEnabled !== 'boolean' || typeof s.accumulatedMs !== 'number' || !(s.accumulatedMs >= 0)) return null
+  if (s.resumedAt !== null && typeof s.resumedAt !== 'number') return null
+  return {
+    taskId: s.taskId,
+    goal: s.goal,
+    startedAt: s.startedAt,
+    timerEnabled: s.timerEnabled,
+    accumulatedMs: s.accumulatedMs,
+    resumedAt: s.resumedAt as number | null,
+    targetMinutes: typeof s.targetMinutes === 'number' && s.targetMinutes > 0 ? s.targetMinutes : undefined,
+    intent: s.intent === 'complete' || s.intent === 'advance' ? s.intent : undefined,
+  }
 }
 
 export function defaultGoal(task: Task, availableMinutes?: number): string {
@@ -23,7 +46,13 @@ export function defaultGoal(task: Task, availableMinutes?: number): string {
 
 export function startSession(
   task: Task,
-  opts: { goal?: string; timerEnabled?: boolean; now: number },
+  opts: {
+    goal?: string
+    timerEnabled?: boolean
+    now: number
+    targetMinutes?: number
+    intent?: 'complete' | 'advance'
+  },
 ): ActiveSession {
   if (task.completed) throw new Error('La tarea ya está terminada')
   return {
@@ -33,6 +62,8 @@ export function startSession(
     timerEnabled: opts.timerEnabled ?? true,
     accumulatedMs: 0,
     resumedAt: opts.timerEnabled === false ? null : opts.now,
+    targetMinutes: opts.targetMinutes && opts.targetMinutes > 0 ? Math.round(opts.targetMinutes) : undefined,
+    intent: opts.intent,
   }
 }
 
@@ -58,6 +89,8 @@ export interface FinishInput {
   progressPct?: number
   /** Hitos marcados como hechos durante la sesión (solo se marcan, no se desmarcan). */
   completedMilestoneIds?: string[]
+  /** Marca la tarea entera como terminada (prevalece sobre el resto del progreso). */
+  markDone?: boolean
 }
 
 export interface FinishResult {
@@ -93,8 +126,15 @@ export function finishSession(
     updated = setManualProgress(updated, input.progressPct, nowIso)
   }
 
+  if (input.markDone) updated = markDone(updated, nowIso)
+
   updated = { ...updated, actualMinutesSpent: updated.actualMinutesSpent + minutes }
   const after = clampPct(effectivePct(updated))
+
+  // Una sesión sin tiempo ni avance es casi siempre accidental y ensucia las estadísticas.
+  if (minutes === 0 && after === before && !input.markDone) {
+    throw new Error('Esta sesión no tiene tiempo ni avance que guardar. Trabaja un poco más o descártala.')
+  }
 
   return {
     task: updated,

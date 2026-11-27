@@ -43,6 +43,20 @@ function normalize(task: Task, now: string): Task {
   }
 }
 
+export const MAX_ESTIMATE = 100000
+
+/** Una rápida sin estimación nunca podría recomendarse, así que se exige. */
+function validateEstimate(est: number | null, type: TaskType) {
+  if (est == null) {
+    if (type === 'quick') {
+      throw new Error('Indica cuántos minutos necesitas: así GAP sabrá cuándo recomendártela.')
+    }
+    return
+  }
+  if (!Number.isFinite(est) || est < 1) throw new Error('La estimación debe ser de al menos 1 minuto.')
+  if (est > MAX_ESTIMATE) throw new Error('La estimación es demasiado grande.')
+}
+
 export function newTask(
   input: {
     title: string
@@ -57,9 +71,7 @@ export function newTask(
   const title = input.title.trim()
   if (!title) throw new Error('El título es obligatorio')
   const est = input.estimatedTotalMinutes ?? null
-  if (est != null && (!Number.isFinite(est) || est < 1)) {
-    throw new Error('La estimación debe ser de al menos 1 minuto')
-  }
+  validateEstimate(est, input.type)
   const titles = (input.milestoneTitles ?? []).map((t) => t.trim()).filter(Boolean)
   const mode: ProgressMode = input.type === 'milestones' ? 'milestones' : 'manual'
   return {
@@ -132,4 +144,65 @@ export function setTrackingMode(task: Task, mode: ProgressMode, now: string): Ta
 
 export function nextMilestone(task: Task): Milestone | null {
   return task.milestones.filter((m) => !m.done).sort((a, b) => a.position - b.position)[0] ?? null
+}
+
+export interface TaskEdit {
+  title: string
+  type: TaskType
+  estimatedTotalMinutes: number | null
+}
+
+/** Edita título, tipo y estimación sin tocar progreso, tiempo ni hitos. */
+export function editTask(task: Task, edit: TaskEdit, now: string): Task {
+  const title = edit.title.trim()
+  if (!title) throw new Error('El título es obligatorio.')
+  if (title.length > 200) throw new Error('El título es demasiado largo (máximo 200 caracteres).')
+  const est = edit.estimatedTotalMinutes
+  validateEstimate(est, edit.type)
+  if (edit.type === 'milestones' && task.milestones.length === 0) {
+    throw new Error('Añade al menos un hito antes de usar el tipo «Por hitos».')
+  }
+  return normalize(
+    {
+      ...task,
+      title,
+      type: edit.type,
+      estimatedTotalMinutes: est == null ? null : Math.round(est),
+      // normalize recalcula el estado; conservamos el actual para no reabrir ni cerrar nada.
+      progressPercentage: effectivePct(task),
+      completed: false,
+      completedAt: null,
+    },
+    now,
+  )
+}
+
+/** Marca la tarea como terminada: 100% manual o todos los hitos hechos. */
+export function markDone(task: Task, now: string): Task {
+  if (task.progressTrackingMode === 'milestones' && task.milestones.length > 0) {
+    const milestones = task.milestones.map((m) => (m.done ? m : { ...m, done: true, completedAt: now }))
+    return normalize({ ...task, milestones, completed: false, completedAt: null }, now)
+  }
+  return normalize({ ...task, progressPercentage: 100, completed: false, completedAt: null }, now)
+}
+
+/** Quita un hito. Si era el último en modo hitos, pasa a manual conservando el % actual. */
+export function removeMilestone(task: Task, milestoneId: string, now: string): Task {
+  if (!task.milestones.some((m) => m.id === milestoneId)) throw new Error('Hito no encontrado')
+  const before = effectivePct(task)
+  const milestones = task.milestones
+    .filter((m) => m.id !== milestoneId)
+    .map((m, i) => ({ ...m, position: i }))
+  if (milestones.length === 0) {
+    const manual: Task = {
+      ...task,
+      milestones,
+      progressTrackingMode: 'manual',
+      progressPercentage: before,
+      completed: false,
+      completedAt: null,
+    }
+    return normalize(manual, now)
+  }
+  return normalize({ ...task, milestones, completed: false, completedAt: null }, now)
 }

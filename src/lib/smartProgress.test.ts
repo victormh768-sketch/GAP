@@ -214,9 +214,12 @@ describe('recomendaciones de Smart Gap Matching', () => {
     expect(r.advance).toHaveLength(0)
     expect(r.unsuitable).toHaveLength(1)
   })
-  it('una tarea rápida sin estimación no es adecuada', () => {
-    const t = newTask({ title: 'x', type: 'quick' }, 'q', NOW)
-    expect(recommend([t], 30).unsuitable).toHaveLength(1)
+  it('una tarea rápida antigua sin estimación no es adecuada y explica cómo arreglarlo', () => {
+    // Las tareas anteriores a Smart Progress pueden no tener estimación (ya no se pueden crear así).
+    const t = sanitizeTask({ id: 'q', title: 'x', createdAt: NOW })
+    const r = recommend([t], 30)
+    expect(r.unsuitable).toHaveLength(1)
+    expect(r.unsuitable[0].reason).toContain('Tareas')
   })
   it('sugiere el siguiente hito como objetivo', () => {
     let t = milestoneTask()

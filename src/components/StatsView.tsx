@@ -18,9 +18,9 @@ function since(id: (typeof RANGES)[number]['id']): string | undefined {
 
 function Stat({ label, value, note }: { label: string; value: string; note: string }) {
   return (
-    <div className="rounded-2xl border border-line bg-panel p-4">
-      <p className="text-xs text-muted">{label}</p>
-      <p className="mt-1 text-3xl font-semibold tabular-nums">{value}</p>
+    <div className="rounded-[1.75rem] border border-line bg-panel/90 p-4">
+      <p className="kicker text-muted">{label}</p>
+      <p className="numeral mt-2 text-4xl">{value}</p>
       <p className="mt-1 text-[11px] leading-snug text-muted">{note}</p>
     </div>
   )
@@ -32,12 +32,12 @@ export function StatsView({ tasks, sessions, onGoToGap }: { tasks: Task[]; sessi
 
   if (sessions.length === 0 && tasks.every((t) => !t.completed)) {
     return (
-      <div className="rounded-2xl border border-dashed border-line px-5 py-10 text-center">
-        <p className="text-base font-semibold">Todavía no hay actividad</p>
+      <div className="rounded-[1.75rem] border border-dashed border-line px-5 py-10 text-center">
+        <p className="serif-accent text-2xl text-accent">Todavía no hay actividad</p>
         <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
           Cuando termines tu primera sesión verás aquí el tiempo invertido y lo que has avanzado.
         </p>
-        <button onClick={onGoToGap} className="mt-5 min-h-11 rounded-xl bg-accent px-5 text-sm font-semibold text-ink">
+        <button onClick={onGoToGap} className="kicker mt-5 min-h-11 rounded-full bg-accent px-6 text-xs font-bold text-ink">
           Buscar algo para mi hueco
         </button>
       </div>

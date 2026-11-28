@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { Auth } from './components/Auth'
+import { Contours } from './components/Contours'
 import { GapMatcher, type StartIntent } from './components/GapMatcher'
 import { SessionPanel } from './components/SessionPanel'
 import { StatsView } from './components/StatsView'
@@ -55,15 +56,15 @@ function ActiveBar({ task, active, onOpen }: { task: Task; active: ActiveSession
   return (
     <button
       onClick={onOpen}
-      className="fixed inset-x-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 mx-auto flex min-h-14 max-w-xl items-center justify-between gap-3 rounded-2xl border border-accent/50 bg-raised px-4 text-left shadow-xl"
+      className="fixed inset-x-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 mx-auto flex min-h-14 max-w-xl items-center justify-between gap-3 rounded-full border border-accent/50 bg-raised/95 px-6 text-left shadow-[0_0_30px_-8px_rgb(182_243_107/0.5)] backdrop-blur"
     >
       <span className="min-w-0">
-        <span className="block text-[11px] font-semibold uppercase tracking-widest text-accent">
+        <span className="kicker block text-accent">
           {active.resumedAt == null && active.timerEnabled ? 'Sesión en pausa' : 'Sesión en curso'}
         </span>
         <span className="block truncate text-sm font-medium">{task.title}</span>
       </span>
-      <span className="shrink-0 text-lg font-semibold tabular-nums">{active.timerEnabled ? clock(elapsedMs(active, now)) : 'Abrir'}</span>
+      <span className="numeral shrink-0 text-2xl">{active.timerEnabled ? clock(elapsedMs(active, now)) : 'Abrir'}</span>
     </button>
   )
 }
@@ -152,14 +153,15 @@ function Workspace({ repo }: { repo: Repository }) {
   const barVisible = !!active && !!activeTask && !showPanel
 
   return (
-    <div className={`mx-auto w-full max-w-xl px-4 pt-6 sm:px-5 ${barVisible ? 'pb-44' : 'pb-28'}`}>
+    <div className={`relative mx-auto w-full max-w-xl px-4 pt-6 sm:px-5 ${barVisible ? 'pb-44' : 'pb-28'}`}>
+      <Contours />
       <header className="mb-6 flex items-center justify-between">
-        <h1 className="flex items-center gap-2.5 text-xl font-bold tracking-tight">
-          <span aria-hidden className="inline-block h-2.5 w-6 rounded-full bg-accent" />
-          GAP
+        <h1 className="flex items-center gap-3">
+          <span aria-hidden className="glow inline-block h-2.5 w-7 rounded-full bg-accent" />
+          <span className="font-mono text-sm font-semibold tracking-[0.35em]">GAP</span>
         </h1>
         {supabase && (
-          <button onClick={() => void supabase!.auth.signOut()} className="min-h-11 px-2 text-sm text-muted hover:text-white">
+          <button onClick={() => void supabase!.auth.signOut()} className="kicker min-h-11 px-2 text-muted hover:text-white">
             Salir
           </button>
         )}
@@ -198,19 +200,19 @@ function Workspace({ repo }: { repo: Repository }) {
                 )}
                 {inProgress.length > 0 && (
                   <section className="space-y-3">
-                    <h2 className="text-xs font-medium uppercase tracking-widest text-muted">En progreso</h2>
+                    <h2 className="kicker text-muted">En progreso</h2>
                     {inProgress.map(card)}
                   </section>
                 )}
                 {untouched.length > 0 && (
                   <section className="space-y-3">
-                    <h2 className="text-xs font-medium uppercase tracking-widest text-muted">Pendientes</h2>
+                    <h2 className="kicker text-muted">Pendientes</h2>
                     {untouched.map(card)}
                   </section>
                 )}
                 {done.length > 0 && (
                   <section className="space-y-3">
-                    <h2 className="text-xs font-medium uppercase tracking-widest text-muted">Terminadas</h2>
+                    <h2 className="kicker text-muted">Terminadas</h2>
                     {done.map(card)}
                   </section>
                 )}
@@ -236,8 +238,8 @@ function Workspace({ repo }: { repo: Repository }) {
               key={t.id}
               onClick={() => setTab(t.id)}
               aria-current={tab === t.id ? 'page' : undefined}
-              className={`flex min-h-16 flex-col items-center justify-center gap-1 text-xs transition ${
-                tab === t.id ? 'font-semibold text-accent' : 'text-muted hover:text-white'
+              className={`kicker flex min-h-16 flex-col items-center justify-center gap-1 text-[10px] transition ${
+                tab === t.id ? 'text-accent' : 'text-muted hover:text-white'
               }`}
             >
               <NavIcon tab={t.id} />
@@ -274,7 +276,7 @@ function Workspace({ repo }: { repo: Repository }) {
       )}
 
       {toast && (
-        <div role="status" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-2xl border border-line bg-raised px-5 py-3 text-center text-sm shadow-xl">
+        <div role="status" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 rounded-full border border-accent/40 bg-raised px-5 py-3 text-center text-sm shadow-xl">
           {toast}
         </div>
       )}

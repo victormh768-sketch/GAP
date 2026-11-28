@@ -46,7 +46,7 @@ export function TaskForm({ onCreate }: { onCreate: (input: NewTaskInput) => Prom
   }
 
   return (
-    <form onSubmit={submit} className="space-y-4 rounded-2xl border border-line bg-panel p-4 sm:p-5" aria-label="Nueva tarea">
+    <form onSubmit={submit} className="space-y-4 rounded-[1.75rem] border border-line bg-panel/90 p-5" aria-label="Nueva tarea">
       <input
         id="nueva-tarea"
         value={title}
@@ -66,18 +66,18 @@ export function TaskForm({ onCreate }: { onCreate: (input: NewTaskInput) => Prom
             role="radio"
             aria-checked={type === t.value}
             onClick={() => setType(t.value)}
-            className={`min-h-14 rounded-xl border px-2.5 py-2 text-left transition ${
+            className={`min-h-14 rounded-2xl border px-2.5 py-2 text-left transition ${
               type === t.value ? 'border-accent bg-accent/10' : 'border-line hover:border-white/25'
             }`}
           >
-            <div className={`text-sm font-semibold ${type === t.value ? 'text-accent' : ''}`}>{t.label}</div>
+            <div className={`kicker whitespace-nowrap text-[10px] font-bold tracking-[0.12em] ${type === t.value ? 'text-accent' : ''}`}>{t.label}</div>
             <div className="text-[11px] leading-tight text-muted">{t.hint}</div>
           </button>
         ))}
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="estimacion" className="block text-sm text-muted">
+        <label htmlFor="estimacion" className="kicker block text-muted">
           {quick ? 'Cuánto tardas en total' : 'Tiempo total estimado (opcional)'}
         </label>
         <div className="flex flex-wrap items-center gap-2">
@@ -119,7 +119,7 @@ export function TaskForm({ onCreate }: { onCreate: (input: NewTaskInput) => Prom
       )}
 
       {err && <p role="alert" className="text-sm text-danger">{err}</p>}
-      <button type="submit" className="min-h-12 w-full rounded-xl bg-accent text-sm font-semibold text-ink transition hover:brightness-110 active:scale-[0.99]">
+      <button type="submit" className="kicker min-h-12 w-full rounded-full bg-accent text-xs font-bold text-ink shadow-[0_0_30px_-6px_rgb(182_243_107/0.55)] transition hover:brightness-110 active:scale-[0.99]">
         Añadir tarea
       </button>
     </form>

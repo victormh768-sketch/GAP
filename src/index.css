@@ -7,8 +7,41 @@
   --color-line: #2d332b;
   --color-muted: #a3ac9d;    /* ≥ 7:1 sobre ink y panel */
   --color-accent: #b6f36b;   /* verde lima */
+  --color-accent-2: #e2f98a; /* extremo claro del degradado lima */
   --color-danger: #ff9b8a;
   --font-sans: "Figtree Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+/* Micro-etiqueta: monoespaciada, mayúsculas y mucho espaciado. */
+@utility kicker {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Acento editorial: serif cursiva. */
+@utility serif-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-variation-settings: "opsz" 72;
+}
+
+/* Números grandes: serif pesada. */
+@utility numeral {
+  font-family: var(--font-serif);
+  font-weight: 800;
+  font-variation-settings: "opsz" 144;
+  font-variant-numeric: lining-nums tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+@utility glow {
+  filter: drop-shadow(0 0 14px rgb(182 243 107 / 0.35));
 }
 
 html {
@@ -17,7 +50,10 @@ html {
 }
 
 body {
-  background: var(--color-ink);
+  background:
+    radial-gradient(70% 38% at 50% -4%, rgb(182 243 107 / 0.09), transparent 70%),
+    var(--color-ink);
+  background-attachment: fixed;
   color: #eef2ea;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

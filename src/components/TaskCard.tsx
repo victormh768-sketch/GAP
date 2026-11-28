@@ -32,7 +32,7 @@ function EditForm({ task, onSave }: { task: Task; onSave: (title: string, type: 
       }}
       className="space-y-3"
     >
-      <p className="text-xs font-medium uppercase tracking-widest text-muted">Editar</p>
+      <p className="kicker text-muted">Editar</p>
       <input
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -125,13 +125,13 @@ export function TaskCard({
   }
 
   return (
-    <article className="rounded-2xl border border-line bg-panel p-4 transition hover:border-white/15 sm:p-5">
+    <article className="rounded-[1.75rem] border border-line bg-panel/90 p-5 transition hover:border-accent/30">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className={`break-words text-base font-semibold leading-snug ${task.completed ? 'text-muted line-through' : ''}`}>
             {task.title}
           </h3>
-          <span className="mt-1.5 inline-block rounded-full border border-line px-2.5 py-0.5 text-[11px] text-muted">
+          <span className="kicker mt-2 inline-block rounded-full border border-line px-2.5 py-0.5 text-[10px] text-muted">
             {TYPE_LABEL[task.type]}
           </span>
         </div>
@@ -140,7 +140,7 @@ export function TaskCard({
             onClick={onWork}
             disabled={workDisabled}
             title={workDisabled ? 'Termina o descarta la sesión en curso primero' : undefined}
-            className="min-h-11 shrink-0 rounded-full bg-accent px-5 text-sm font-semibold text-ink transition hover:brightness-110 active:scale-95"
+            className="kicker min-h-11 shrink-0 rounded-full bg-accent px-5 text-xs font-bold text-ink transition hover:brightness-110 active:scale-95 disabled:opacity-40"
           >
             Trabajar
           </button>
@@ -150,7 +150,7 @@ export function TaskCard({
       <div className="mt-4 space-y-2">
         <ProgressBar value={pct} label={`Progreso de ${task.title}`} />
         <div className="flex flex-wrap justify-between gap-x-4 gap-y-0.5 text-xs text-muted">
-          <span className="font-semibold text-white">{pct}% completado</span>
+          <span className="numeral text-base text-white">{pct}% <span className="font-sans text-xs font-normal text-muted">completado</span></span>
           <span>
             {formatMinutes(task.actualMinutesSpent)} invertidos
             {task.estimatedTotalMinutes != null && ` · ${formatMinutes(task.estimatedTotalMinutes)} estimados`}
@@ -162,7 +162,7 @@ export function TaskCard({
       <button
         onClick={onToggle}
         aria-expanded={open}
-        className="-mb-2 mt-1 min-h-11 text-sm text-muted transition hover:text-white"
+        className="kicker -mb-2 mt-1 min-h-11 text-[11px] text-muted transition hover:text-white"
       >
         {open ? 'Ocultar detalle' : 'Detalle y progreso'}
       </button>

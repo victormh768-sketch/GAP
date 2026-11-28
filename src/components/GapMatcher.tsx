@@ -3,6 +3,7 @@ import { MAX_PLAN_MINUTES, planGap, recommend, type Plan, type PlanItem } from '
 import { effectivePct } from '../lib/progress'
 import type { Match, Task } from '../types'
 import { ProgressBar } from './ProgressBar'
+import { GapRing } from './Ring'
 
 const PRESETS = [10, 15, 20, 30, 45, 60, 90]
 const STORAGE_KEY = 'gap:minutes'
@@ -20,22 +21,26 @@ function readSaved(): number {
 
 function Chip({ kind }: { kind: StartIntent }) {
   return kind === 'complete' ? (
-    <span className="inline-block rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-ink">
-      Completar
-    </span>
+    <span className="kicker inline-block rounded-full bg-accent px-3 py-0.5 text-[10px] font-bold text-ink">Completar</span>
   ) : (
-    <span className="inline-block rounded-full border border-accent/70 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent">
-      Avanzar
-    </span>
+    <span className="kicker inline-block rounded-full border border-accent/70 px-3 py-0.5 text-[10px] font-bold text-accent">Avanzar</span>
   )
 }
 
 function Minutes({ value }: { value: number }) {
   return (
     <p className="shrink-0 text-right leading-none">
-      <span className="text-3xl font-semibold tabular-nums">{value}</span>
-      <span className="ml-1 text-sm text-muted">min</span>
+      <span className="numeral text-4xl">{value}</span>
+      <span className="kicker ml-1.5 text-muted">min</span>
     </p>
+  )
+}
+
+function Play() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-3.5" fill="currentColor" aria-hidden>
+      <path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5Z" />
+    </svg>
   )
 }
 
@@ -54,45 +59,29 @@ function StartButton({
     <button
       onClick={onClick}
       disabled={blocked}
-      className={`min-h-11 w-full rounded-xl px-4 text-sm font-semibold transition active:scale-[0.99] ${
-        primary ? 'bg-accent text-ink hover:brightness-110' : 'border border-line text-white hover:border-accent/60'
+      className={`kicker flex min-h-12 w-full items-center justify-center gap-2.5 rounded-full px-5 text-xs font-bold transition active:scale-[0.99] ${
+        primary
+          ? 'bg-accent text-ink shadow-[0_0_28px_-6px_rgb(182_243_107/0.6)] hover:brightness-110'
+          : 'border border-line text-white hover:border-accent/60'
       }`}
     >
+      <Play />
       Empezar {minutes} min
     </button>
   )
 }
 
-function GapBar({ plan, available }: { plan: Plan; available: number }) {
-  return (
-    <div
-      role="img"
-      aria-label={`Ocupas ${plan.usedMinutes} de ${available} minutos`}
-      className="flex h-5 w-full gap-1 overflow-hidden rounded-full bg-panel p-1"
-    >
-      {plan.items.map((i) => (
-        <div
-          key={i.task.id}
-          style={{ flexGrow: i.minutes, flexBasis: 0, minWidth: 8 }}
-          className={`rounded-full ${i.kind === 'complete' ? 'bg-accent' : 'stripe border border-accent'}`}
-        />
-      ))}
-      {plan.freeMinutes > 0 && <div style={{ flexGrow: plan.freeMinutes, flexBasis: 0 }} />}
-    </div>
-  )
-}
-
 function PlanCard({ item, blocked, onStart }: { item: PlanItem; blocked: boolean; onStart: () => void }) {
   return (
-    <li className="space-y-3 rounded-2xl border border-line bg-panel p-4">
+    <li className="space-y-3 rounded-3xl border border-line bg-panel/90 p-4 shadow-[inset_0_1px_0_rgb(255_255_255/0.04)]">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 space-y-1.5">
+        <div className="min-w-0 space-y-2">
           <Chip kind={item.kind} />
           <p className="break-words text-base font-semibold leading-snug">{item.task.title}</p>
         </div>
         <Minutes value={item.minutes} />
       </div>
-      <p className="text-sm leading-snug text-muted">{item.reason}</p>
+      <p className="serif-accent text-[15px] leading-snug text-muted">— {item.reason}</p>
       {item.kind === 'advance' && <ProgressBar value={effectivePct(item.task)} label={`Progreso de ${item.task.title}`} />}
       <StartButton minutes={item.minutes} blocked={blocked} onClick={onStart} />
     </li>
@@ -101,12 +90,15 @@ function PlanCard({ item, blocked, onStart }: { item: PlanItem; blocked: boolean
 
 function EmptyBox({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line px-5 py-8 text-center">
-      <p className="text-base font-semibold">{title}</p>
-      <div className="mx-auto mt-2 max-w-xs space-y-4 text-sm leading-relaxed text-muted">{children}</div>
+    <div className="rounded-3xl border border-dashed border-line px-5 py-9 text-center">
+      <p className="serif-accent text-2xl">{title}</p>
+      <div className="mx-auto mt-3 max-w-xs space-y-4 text-sm leading-relaxed text-muted">{children}</div>
     </div>
   )
 }
+
+const stepBtn =
+  'grid size-11 shrink-0 place-items-center rounded-full border border-line text-xl text-muted transition hover:border-accent/60 hover:text-white active:scale-95'
 
 export function GapMatcher({
   tasks,
@@ -160,55 +152,51 @@ export function GapMatcher({
       : ''
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {blocked && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
+        <div className="flex items-center justify-between gap-3 rounded-3xl border border-accent/40 bg-accent/10 px-4 py-3 text-sm">
           <p className="min-w-0">
             Sesión en curso: <span className="font-semibold">{activeSessionTitle}</span>
           </p>
-          <button onClick={onOpenSession} className="min-h-11 shrink-0 rounded-xl bg-accent px-4 font-semibold text-ink">
+          <button onClick={onOpenSession} className="kicker min-h-11 shrink-0 rounded-full bg-accent px-5 text-xs font-bold text-ink">
             Abrir
           </button>
         </div>
       )}
 
-      <section aria-labelledby="hueco-titulo" className="space-y-4">
-        <h2 id="hueco-titulo" className="text-sm font-medium text-muted">
+      <section aria-labelledby="hueco-titulo" className="space-y-5">
+        <h2 id="hueco-titulo" className="kicker text-center text-muted">
           ¿Cuánto tiempo tienes?
         </h2>
-        <div className="flex items-center justify-between gap-2">
-          <button
-            onClick={() => setMinutes((minutes ?? 20) - 5)}
-            aria-label="Menos 5 minutos"
-            className="grid size-12 shrink-0 place-items-center rounded-full border border-line text-2xl text-muted transition hover:border-accent/60 hover:text-white active:scale-95"
-          >
-            −
+
+        <div className="flex items-center justify-center gap-2">
+          <button onClick={() => setMinutes((minutes ?? 20) - 5)} aria-label="Menos 5 minutos" className={stepBtn}>
+            ‹
           </button>
-          <label className="flex min-w-0 items-baseline justify-center gap-2">
-            <input
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value.replace(/\D/g, '').slice(0, 3))
-                setPlanIdx(0)
-              }}
-              onFocus={(e) => e.target.select()}
-              inputMode="numeric"
-              pattern="[0-9]*"
-              aria-label="Minutos disponibles"
-              aria-invalid={minutes == null}
-              style={{ width: `${Math.max(2, text.length) + 0.4}ch` }}
-              className="bg-transparent text-center text-7xl font-semibold tabular-nums leading-none caret-accent focus:outline-none"
-            />
-            <span className="text-xl text-muted">min</span>
-          </label>
-          <button
-            onClick={() => setMinutes((minutes ?? 15) + 5)}
-            aria-label="Más 5 minutos"
-            className="grid size-12 shrink-0 place-items-center rounded-full border border-line text-2xl text-muted transition hover:border-accent/60 hover:text-white active:scale-95"
-          >
-            +
+          <GapRing plan={plan} available={minutes}>
+            <label className="grid place-items-center">
+              <input
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value.replace(/\D/g, '').slice(0, 3))
+                  setPlanIdx(0)
+                }}
+                onFocus={(e) => e.target.select()}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                aria-label="Minutos disponibles"
+                aria-invalid={minutes == null}
+                style={{ width: `${Math.max(2, text.length) + 0.3}ch` }}
+                className="numeral bg-transparent text-center text-[64px] leading-none caret-accent focus:outline-none"
+              />
+              <span className="kicker mt-1 text-muted">minutos</span>
+            </label>
+          </GapRing>
+          <button onClick={() => setMinutes((minutes ?? 15) + 5)} aria-label="Más 5 minutos" className={stepBtn}>
+            ›
           </button>
         </div>
+
         {minutes == null && (
           <p role="alert" className="text-center text-sm text-danger">
             Escribe un número de minutos entre 1 y {MAX_PLAN_MINUTES}.
@@ -220,8 +208,8 @@ export function GapMatcher({
               key={p}
               onClick={() => setMinutes(p)}
               aria-pressed={minutes === p}
-              className={`min-h-10 rounded-full border px-4 text-sm transition ${
-                minutes === p ? 'border-accent bg-accent text-ink font-semibold' : 'border-line text-muted hover:text-white'
+              className={`min-h-10 min-w-12 rounded-full border px-3.5 font-mono text-sm transition ${
+                minutes === p ? 'border-accent bg-accent font-bold text-ink' : 'border-line text-muted hover:text-white'
               }`}
             >
               {p}
@@ -237,7 +225,7 @@ export function GapMatcher({
       {tasks.length === 0 && (
         <EmptyBox title="Aquí decides qué hacer con tu tiempo libre">
           <p>Añade tus tareas con una estimación y GAP te dirá cuáles caben en cada hueco, o en cuáles puedes avanzar.</p>
-          <button onClick={onAddTask} className="min-h-11 rounded-xl bg-accent px-5 font-semibold text-ink">
+          <button onClick={onAddTask} className="kicker min-h-12 rounded-full bg-accent px-6 text-xs font-bold text-ink">
             Añadir mi primera tarea
           </button>
         </EmptyBox>
@@ -246,7 +234,7 @@ export function GapMatcher({
       {tasks.length > 0 && pending.length === 0 && (
         <EmptyBox title="Todo hecho">
           <p>No te queda nada pendiente. Añade algo nuevo cuando lo necesites.</p>
-          <button onClick={onAddTask} className="min-h-11 rounded-xl bg-accent px-5 font-semibold text-ink">
+          <button onClick={onAddTask} className="kicker min-h-12 rounded-full bg-accent px-6 text-xs font-bold text-ink">
             Añadir una tarea
           </button>
         </EmptyBox>
@@ -260,22 +248,20 @@ export function GapMatcher({
 
       {plan && minutes != null && (
         <section aria-labelledby="plan-titulo" className="space-y-4">
-          <div className="space-y-3">
-            <div>
-              <h2 id="plan-titulo" className="text-lg font-semibold">
-                {plans.length > 1 ? 'Tus mejores opciones' : 'Tu mejor opción'}
-              </h2>
-              <p className="mt-0.5 text-sm text-muted">{summary}</p>
-            </div>
+          <div className="space-y-3 text-center">
+            <h2 id="plan-titulo" className="kicker text-muted">
+              {plans.length > 1 ? 'Tus mejores opciones' : 'Tu mejor opción'}
+            </h2>
+            <p className="serif-accent text-xl text-accent">— {summary}</p>
             {plans.length > 1 && (
-              <div role="group" aria-label="Elegir combinación" className="grid grid-flow-col auto-cols-fr gap-1.5 rounded-2xl bg-panel p-1">
+              <div role="group" aria-label="Elegir combinación" className="grid grid-flow-col auto-cols-fr gap-1 rounded-full border border-line bg-panel p-1">
                 {plans.map((p, i) => (
                   <button
                     key={p.id}
                     onClick={() => setPlanIdx(i)}
                     aria-pressed={plan.id === p.id}
-                    className={`min-h-11 rounded-xl px-2 text-sm transition ${
-                      plan.id === p.id ? 'bg-accent font-semibold text-ink' : 'text-muted hover:text-white'
+                    className={`min-h-11 rounded-full px-2 text-[13px] transition ${
+                      plan.id === p.id ? 'bg-accent font-bold text-ink' : 'text-muted hover:text-white'
                     }`}
                   >
                     {p.label}
@@ -283,7 +269,6 @@ export function GapMatcher({
                 ))}
               </div>
             )}
-            <GapBar plan={plan} available={minutes} />
           </div>
           <ul className="space-y-3">
             {plan.items.map((item) => (
@@ -300,14 +285,14 @@ export function GapMatcher({
 
       {others.length > 0 && (
         <section aria-labelledby="otras-titulo" className="space-y-3">
-          <h2 id="otras-titulo" className="text-sm font-medium text-muted">
+          <h2 id="otras-titulo" className="kicker text-muted">
             Otras tareas que también encajan
           </h2>
           <ul className="space-y-2">
             {others.map((m) => (
-              <li key={m.task.id} className="space-y-2.5 rounded-2xl border border-line px-4 py-3">
+              <li key={m.task.id} className="space-y-3 rounded-3xl border border-line px-4 py-3.5">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 space-y-1">
+                  <div className="min-w-0 space-y-1.5">
                     <Chip kind={m.kind as StartIntent} />
                     <p className="break-words font-medium leading-snug">{m.task.title}</p>
                     <p className="text-xs leading-snug text-muted">{m.reason}</p>
@@ -327,12 +312,12 @@ export function GapMatcher({
       )}
 
       {minutes != null && rec.unsuitable.length > 0 && (
-        <details className="group rounded-2xl border border-line">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 text-sm text-muted">
+        <details className="group rounded-3xl border border-line">
+          <summary className="kicker flex min-h-12 cursor-pointer list-none items-center justify-between px-5 text-muted">
             <span>No encajan ahora ({rec.unsuitable.length})</span>
             <span aria-hidden className="transition group-open:rotate-180">⌄</span>
           </summary>
-          <ul className="space-y-3 border-t border-line px-4 py-3">
+          <ul className="space-y-3 border-t border-line px-5 py-3.5">
             {rec.unsuitable.map((m) => (
               <li key={m.task.id}>
                 <p className="break-words text-sm font-medium">{m.task.title}</p>

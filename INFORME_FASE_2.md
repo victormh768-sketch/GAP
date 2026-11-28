@@ -50,3 +50,11 @@ Rama `fase-2-lanzamiento` (commit local, **sin push ni despliegue**). No se toc�
 - En navegación privada o con el almacenamiento lleno no se puede guardar (se avisa claramente).
 - Dos pestañas abiertas no se refrescan entre sí; si editas la misma tarea en ambas, gana la última en guardar.
 - Un usuario con varios dispositivos verá listas distintas en cada uno.
+
+## Dirección visual (ronda de estilo)
+
+Inspirada en dos referencias (lista neón con anillo central y temporizador de enfoque), sin copiarlas y manteniendo la paleta (#101210 / #1B1E1A / lima #B6F36B):
+- «Mi hueco» gira en torno a un anillo con marcas, brillo y un tramo por tarea del plan (sólido = completar, rayado = avanzar).
+- Sesión con anillo de cuenta atrás, números grandes en serif, etiquetas mono en mayúsculas, píldora Pausar/Reanudar y Finalizar en coral; el cierre («¿cómo ha ido?») es un segundo paso.
+- Tipografías autoalojadas (Figtree, Fraunces, JetBrains Mono), líneas de contorno decorativas de fondo.
+- Sin cambios de funcionalidad, datos ni arquitectura. Verificado: 72 tests, 0 violaciones axe, sin desbordes de 320 a 1280 px.
